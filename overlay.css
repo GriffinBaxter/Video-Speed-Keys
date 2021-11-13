@@ -1,0 +1,16 @@
+#video-speed-overlay {
+    color: white;
+    background: rgba(0, 0, 0, 0.75);
+
+    font-size: 20px;
+    width: 75px;
+    height: 40px;
+    line-height: 40px;
+    top: 20px;
+    right: 20px;
+    z-index: 10000;
+
+    position: fixed;
+    display: block;
+    text-align: center;
+}

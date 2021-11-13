@@ -1,0 +1,12 @@
+{
+    "name": "Video Speed Keys",
+    "version": "1.0.0",
+    "manifest_version": 3,
+    "content_scripts": [
+        {
+            "matches": ["*://*.youtube.com/*"],
+            "js": ["content.js"],
+            "css": ["overlay.css"]
+        }
+    ]
+}
