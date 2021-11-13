@@ -1,7 +1,7 @@
 // CONSTANTS
-const SPEED_DOWN_KEY = "-";
-const SPEED_UP_KEY = "+";
-const RESET_SPEED_KEY = "*";
+const SPEED_DOWN_KEYS = ["-"];
+const SPEED_UP_KEYS = ["+", "="];
+const RESET_SPEED_KEYS = ["*"];
 
 const MIN_SPEED = 0.25;
 const MAX_SPEED = 2;
@@ -102,11 +102,11 @@ function resetSpeed() {
  * speed keys is pressed.
  */
 document.addEventListener("keydown", function(event) {
-    if (event.key === SPEED_DOWN_KEY) {
+    if (SPEED_DOWN_KEYS.includes(event.key)) {
         speedDown();
-    } else if (event.key === SPEED_UP_KEY) {
+    } else if (SPEED_UP_KEYS.includes(event.key)) {
         speedUp();
-    } else if (event.key === RESET_SPEED_KEY) {
+    } else if (RESET_SPEED_KEYS.includes(event.key)) {
         resetSpeed();
     }
 });
