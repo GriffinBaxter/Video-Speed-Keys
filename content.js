@@ -2,6 +2,7 @@
 const SPEED_DOWN_KEYS = ["-"];
 const SPEED_UP_KEYS = ["+", "="];
 const RESET_SPEED_KEYS = ["*"];
+const SHOW_OVERLAY_KEYS = ["z"];
 
 const MIN_SPEED = 0.25;
 const MAX_SPEED = 2;
@@ -99,28 +100,12 @@ async function setSpeed(speed) {
 
 
 /**
- * Event listener for a keydown event, which calls the respective function depending on whether one of the set video
- * speed keys is pressed and shows the speed overlay.
+ * Retrieves the "videoSpeed" key from the chrome.storage API, and sets the video speed according to the key's value.
+ * If the key is not set, it is set to DEFAULT_SPEED.
+ *
+ * @param showOverlay Determines whether the speed overlay should be shown after completion.
  */
-document.addEventListener("keydown", async function (event) {
-    if (SPEED_DOWN_KEYS.includes(event.key) && videoExists) {
-        await speedDown();
-        showSpeedOverlay();
-    } else if (SPEED_UP_KEYS.includes(event.key) && videoExists) {
-        await speedUp();
-        showSpeedOverlay();
-    } else if (RESET_SPEED_KEYS.includes(event.key) && videoExists) {
-        await setSpeed(DEFAULT_SPEED);
-        showSpeedOverlay();
-    }
-});
-
-
-/**
- * If a video exists on a page, retrieves the "videoSpeed" key from the chrome.storage API, and sets the video speed
- * according to the key's value. If the key is not set, it is set to DEFAULT_SPEED.
- */
-if (videoExists) {
+function setSpeedFromStorage(showOverlay) {
     chrome.storage.local.get(["videoSpeed"], async function (result) {
         if (!isNaN(result.videoSpeed)) {
             if (result.videoSpeed < MIN_SPEED) {
@@ -136,5 +121,35 @@ if (videoExists) {
             await setSpeed(DEFAULT_SPEED);
             await chrome.storage.local.set({videoSpeed: DEFAULT_SPEED});
         }
+        if (showOverlay) {
+            showSpeedOverlay();
+        }
     });
+}
+
+
+/**
+ * Handles any keydown events, which calls the respective function depending on whether one of the set video speed keys
+ * is pressed and shows the speed overlay.
+ */
+async function handleKeyDown(event) {
+    if (SPEED_DOWN_KEYS.includes(event.key) && videoExists) {
+        speedDown().then(() => showSpeedOverlay());
+    } else if (SPEED_UP_KEYS.includes(event.key) && videoExists) {
+        speedUp().then(() => showSpeedOverlay());
+    } else if (RESET_SPEED_KEYS.includes(event.key) && videoExists) {
+        setSpeed(DEFAULT_SPEED).then(() => showSpeedOverlay());
+    } else if (SHOW_OVERLAY_KEYS.includes(event.key) && videoExists) {
+        setSpeedFromStorage(true);
+    }
+}
+
+
+document.addEventListener("keydown", async function (event) {
+    await handleKeyDown(event);
+});
+
+
+if (videoExists) {
+    setSpeedFromStorage(false);
 }
