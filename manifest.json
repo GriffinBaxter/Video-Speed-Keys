@@ -8,5 +8,6 @@
             "js": ["content.js"],
             "css": ["overlay.css"]
         }
-    ]
+    ],
+    "permissions": ["storage"]
 }

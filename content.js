@@ -5,6 +5,7 @@ const RESET_SPEED_KEYS = ["*"];
 
 const MIN_SPEED = 0.25;
 const MAX_SPEED = 2;
+const DEFAULT_SPEED = 1;
 const SPEED_INCREMENT = 0.25;
 
 const OVERLAY_TIMEOUT_MS = 1000;
@@ -60,53 +61,80 @@ function showSpeedOverlay() {
 
 
 /**
- * Speeds the video down by the increment set by SPEED_INCREMENT to a minimum of MIN_SPEED, if a video exists.
+ * Speeds the video down by the increment set by SPEED_INCREMENT to a minimum of MIN_SPEED.
  */
-function speedDown() {
-    if (videoExists) {
-        const originalSpeed = document.getElementsByTagName("video")[0].playbackRate;
-        if (originalSpeed >= MIN_SPEED + SPEED_INCREMENT) {
-            document.getElementsByTagName("video")[0].playbackRate -= SPEED_INCREMENT;
-        }
-        showSpeedOverlay();
+async function speedDown() {
+    const originalSpeed = document.getElementsByTagName("video")[0].playbackRate;
+    if (originalSpeed >= MIN_SPEED + SPEED_INCREMENT) {
+        document.getElementsByTagName("video")[0].playbackRate -= SPEED_INCREMENT;
+        await chrome.storage.local.set(
+            {videoSpeed: document.getElementsByTagName("video")[0].playbackRate}
+        );
     }
 }
 
 /**
- * Speeds the video up by the increment set by SPEED_INCREMENT to a maximum of MAX_SPEED, if a video exists.
+ * Speeds the video up by the increment set by SPEED_INCREMENT to a maximum of MAX_SPEED.
  */
-function speedUp() {
-    if (videoExists) {
-        const originalSpeed = document.getElementsByTagName("video")[0].playbackRate;
-        if (originalSpeed <= MAX_SPEED - SPEED_INCREMENT) {
-            document.getElementsByTagName("video")[0].playbackRate += SPEED_INCREMENT;
-        }
-        showSpeedOverlay();
+async function speedUp() {
+    const originalSpeed = document.getElementsByTagName("video")[0].playbackRate;
+    if (originalSpeed <= MAX_SPEED - SPEED_INCREMENT) {
+        document.getElementsByTagName("video")[0].playbackRate += SPEED_INCREMENT;
+        await chrome.storage.local.set(
+            {videoSpeed: document.getElementsByTagName("video")[0].playbackRate}
+        );
     }
 }
 
 
 /**
- * Resets the video speed to 1, if a video exists.
+ * Sets the video speed to the given value.
+ *
+ * @param speed Number to set the video speed to.
  */
-function resetSpeed() {
-    if (videoExists) {
-        document.getElementsByTagName("video")[0].playbackRate = 1;
-        showSpeedOverlay();
-    }
+async function setSpeed(speed) {
+    document.getElementsByTagName("video")[0].playbackRate = speed;
+    await chrome.storage.local.set({videoSpeed: speed});
 }
 
 
 /**
  * Event listener for a keydown event, which calls the respective function depending on whether one of the set video
- * speed keys is pressed.
+ * speed keys is pressed and shows the speed overlay.
  */
-document.addEventListener("keydown", function(event) {
-    if (SPEED_DOWN_KEYS.includes(event.key)) {
-        speedDown();
-    } else if (SPEED_UP_KEYS.includes(event.key)) {
-        speedUp();
-    } else if (RESET_SPEED_KEYS.includes(event.key)) {
-        resetSpeed();
+document.addEventListener("keydown", async function (event) {
+    if (SPEED_DOWN_KEYS.includes(event.key) && videoExists) {
+        await speedDown();
+        showSpeedOverlay();
+    } else if (SPEED_UP_KEYS.includes(event.key) && videoExists) {
+        await speedUp();
+        showSpeedOverlay();
+    } else if (RESET_SPEED_KEYS.includes(event.key) && videoExists) {
+        await setSpeed(DEFAULT_SPEED);
+        showSpeedOverlay();
     }
 });
+
+
+/**
+ * If a video exists on a page, retrieves the "videoSpeed" key from the chrome.storage API, and sets the video speed
+ * according to the key's value. If the key is not set, it is set to DEFAULT_SPEED.
+ */
+if (videoExists) {
+    chrome.storage.local.get(["videoSpeed"], async function (result) {
+        if (!isNaN(result.videoSpeed)) {
+            if (result.videoSpeed < MIN_SPEED) {
+                await setSpeed(MIN_SPEED);
+                await chrome.storage.local.set({videoSpeed: MIN_SPEED});
+            } else if (result.videoSpeed > MAX_SPEED) {
+                await setSpeed(MAX_SPEED);
+                await chrome.storage.local.set({videoSpeed: MAX_SPEED});
+            } else {
+                await setSpeed(result.videoSpeed);
+            }
+        } else if (isNaN(result.videoSpeed)) {
+            await setSpeed(DEFAULT_SPEED);
+            await chrome.storage.local.set({videoSpeed: DEFAULT_SPEED});
+        }
+    });
+}
