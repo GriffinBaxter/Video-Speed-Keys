@@ -33,7 +33,6 @@ function setAndHandleKeyDown() {
     document.addEventListener("keydown", async function (event) {
         if (videoExists) {
             await handleKeyDown(event);
-            showSpeedOverlay();
         }
     });
 }
@@ -56,12 +55,16 @@ function videoExists() {
 async function handleKeyDown(event) {
     if (SPEED_DOWN_KEYS.includes(event.key)) {
         await speedDown();
+        showSpeedOverlay();
     } else if (SPEED_UP_KEYS.includes(event.key)) {
         await speedUp();
+        showSpeedOverlay();
     } else if (RESET_SPEED_KEYS.includes(event.key)) {
         await setSpeed(DEFAULT_SPEED);
+        showSpeedOverlay();
     } else if (SHOW_OVERLAY_KEYS.includes(event.key)) {
         setSpeedFromStorage();
+        showSpeedOverlay();
     }
 }
 
