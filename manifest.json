@@ -1,6 +1,10 @@
 {
     "name": "Video Speed Keys",
     "version": "1.0.0",
+    "icons": {
+        "128": "icon128.png"
+    },
+    "description": "A Chrome extension for quickly changing the speed of YouTube videos with keyboard shortcuts.",
     "manifest_version": 3,
     "content_scripts": [
         {
